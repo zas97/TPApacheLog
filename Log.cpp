@@ -14,6 +14,8 @@ using namespace std;
 #include <vector>
 #include <algorithm>
 #include <fstream>
+#include <queue>
+#include <string>
 
 
 using namespace std;
@@ -112,53 +114,45 @@ void Log::AddLine(LogLine line) {
     }
 }
 
-bool functionCompare(pair<string,int> &p1,pair<string,int> &p2){
-    return p1.second > p2.second;
-}
 
-void swap(vector<pair<string,int> > &v,int a,int b){
-    pair<string,int> p(v[a].first,v[a].second);
 
-    v[a].first=v[b].first;
-    v[a].second=v[b].second;
 
-    v[b].first=p.first;
-    v[b].second=p.second;
-
-}
+struct compare{
+    bool operator()(const pair<string,int> &p1,const pair<string,int> &p2) {
+        return p1.second > p2.second;
+    }
+};
 
 void Log::PrintMax()
 {
-    vector<pair<string,int> > highest(NB_TOP_ELEMENTS);
+
+    priority_queue< pair<string,int>,vector<pair<string,int>>, compare> highest;
     int i=0;
     map<string,int>::iterator it;
     for(it=count.begin();it!=count.end();it++){
         if(i<NB_TOP_ELEMENTS) {
-            highest[i].first = it->first;
-            highest[i].second = it->second;
+            highest.emplace(*it);
             ++i;
-            if(i==10){
-                sort(highest.begin(),highest.end(),functionCompare);
-            }
         }
         else{
-            if(it->second > highest[NB_TOP_ELEMENTS-1].second) {
-                highest[NB_TOP_ELEMENTS-1].second = it->second;
-                highest[NB_TOP_ELEMENTS-1].first = it->first;
-                for(int j=NB_TOP_ELEMENTS-1;j>=0 ;j--){
-                    if()
-                    swap(highest,NB_TOP_ELEMENTS-1,j);
-                }
-
-
+            if(it->second > highest.top().second) {
+                highest.pop();
+                highest.push(*it);
             }
         }
     }
     if(i==0){
         cout<<"Il y a pas des documents"<<endl;
     }
+    pair<string,int> result[i];
     for(int j=0;j < NB_TOP_ELEMENTS && j < i;j++){
-        cout<<highest[j].first<<" ("<<highest[j].second<<" hits)"<<endl;
+        result[j].first = highest.top().first;
+        result[j].second = highest.top().second;
+        highest.pop();
+    }
+    --i;
+    for(;i>=0;i--){
+        cout<<result[i].first<<"("<<result[i].second<<" hits)"<<endl;
     }
 
 }
